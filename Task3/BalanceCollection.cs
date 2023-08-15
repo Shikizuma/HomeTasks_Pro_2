@@ -64,7 +64,7 @@ namespace Task3
 			if (IndexOfCompany(company.NameCompany) == -1)
 			{
 				Array.Resize(ref accounts, count + 1);
-				accounts[count] = new CompanyAccount(company.NameCompany, company.Balance);
+				accounts[count] = company;
 				count++;
 			}
 			else

@@ -1,63 +1,179 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Task4
 {
-	internal class MyOrderedDictionary<TKey, TValue>
+	internal class MyOrderedDictionary<TKey, TValue> : IEnumerable, IEnumerator where TValue : IComparable<TValue>
 	{
-		private List<KeyValuePair<TKey, TValue>> data = new List<KeyValuePair<TKey, TValue>>();
+		TKey[] keys;
+		TValue[] values;
+
+		int position = -1;
+		int count = 0;
+
+		public MyOrderedDictionary()
+		{
+			keys = new TKey[count];
+			values = new TValue[count];
+		}
 
 		public void Add(TKey key, TValue value)
 		{
-			var newItem = new KeyValuePair<TKey, TValue>(key, value);
-			int index = data.BinarySearch(newItem, new KeyValuePairComparer());
-
-			if (index < 0)
-				index = ~index;
-
-			data.Insert(index, newItem);
-		}
-
-		public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
-		{
-			return data.GetEnumerator();
-		}
-
-		private class KeyValuePairComparer : IComparer<KeyValuePair<TKey, TValue>>
-		{
-			public int Compare(KeyValuePair<TKey, TValue> x, KeyValuePair<TKey, TValue> y)
+			if (IndexOfKey(key) == -1)
 			{
-				return Comparer<TKey>.Default.Compare(x.Key, y.Key);
+				Array.Resize(ref keys, count + 1);
+				Array.Resize(ref values, count + 1);
+				keys[count] = key;
+				values[count] = value;
+				count++;
+			}
+			else
+				throw new ArgumentException();
+		}
+
+		public TValue this[int index]
+		{
+			get
+			{
+				if (index >= 0 && index < count)
+					return values[index];
+				else
+					throw new IndexOutOfRangeException();
+			}
+			set
+			{
+				if (index >= 0 && index < count)
+					values[index] = value;
+				else
+					throw new IndexOutOfRangeException();
 			}
 		}
 
-		public TValue GetValueByKey(TKey key)
+
+		public TValue this[TKey key]
 		{
-			foreach (var pair in data)
+			get
 			{
-				if (EqualityComparer<TKey>.Default.Equals(pair.Key, key))
+				int index = IndexOfKey(key);
+				if (index != -1)
+					return values[index];
+				else
+					throw new IndexOutOfRangeException();
+			}
+			set
+			{
+				int index = IndexOfKey(key);
+				if (index != -1)
+					values[index] = value;
+				else
+					throw new IndexOutOfRangeException();
+			}
+		}
+
+		public int IndexOfKey(TKey key)
+		{
+			int index = -1;
+
+			for (int i = 0; i < keys.Length; i++)
+			{
+				if (EqualityComparer<TKey>.Default.Equals(key, keys[i]))
 				{
-					return pair.Value;
+					index = i;
+					break;
 				}
 			}
-			throw new KeyNotFoundException();
+
+			return index;
 		}
 
-		public List<TKey> GetKeysByValue(TValue value)
+		public int CompareValues(TValue value1, TValue value2)
 		{
-			var keys = new List<TKey>();
-			foreach (var pair in data)
+			return value1.CompareTo(value2);
+		}
+
+		public int CompareValuesByIndex(int index1, int index2)
+		{
+			if (index1 >= 0 && index1 < count && index2 >= 0 && index2 < count)
 			{
-				if (EqualityComparer<TValue>.Default.Equals(pair.Value, value))
-				{
-					keys.Add(pair.Key);
-				}
+				return CompareValues(values[index1], values[index2]);
 			}
-			return keys;
+			throw new IndexOutOfRangeException();
+		}
+
+
+		public object Current => values[position]!;
+
+		public bool IsFixedSize => false;
+
+		public bool IsReadOnly => false;
+
+		public bool IsSynchronized => false;
+
+		public object SyncRoot => false;
+
+		public ICollection Keys => keys;
+
+		public ICollection Values => values;
+
+		public int Count => count;
+
+		public void Clear()
+		{
+			count = 0;
+			keys = new TKey[count];
+			values = new TValue[count];
+		}
+
+		public IEnumerator GetEnumerator()
+		{
+			return this;
+		}
+
+		public bool MoveNext()
+		{
+			if (position < keys.Length - 1)
+			{
+				position++;
+				return true;
+			}
+			Reset();
+			return false;
+		}
+
+		public void Remove(TKey key)
+		{
+			RemoveAt(IndexOfKey(key));
+		}
+
+		public void RemoveAt(int index)
+		{
+			if (index < 0 || index >= count)
+			{
+				TKey[] tempKyes = new TKey[keys.Length - 1];
+				TValue[] tempValues = new TValue[values.Length - 1];
+				for (int i = 0; i < keys.Length; i++)
+				{
+					if (index == i)
+						continue;
+					tempKyes[i] = keys[i];
+					tempValues[i] = values[i];
+				}
+				count--;
+				keys = tempKyes;
+				values = tempValues;
+			}
+			else
+				throw new IndexOutOfRangeException();
+		}
+
+		public void Reset()
+		{
+			position = -1;
 		}
 	}
 

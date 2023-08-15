@@ -1,4 +1,5 @@
-﻿using System.Collections.Specialized;
+﻿using System.Collections;
+using System.Collections.Specialized;
 
 namespace Task4
 {
@@ -6,14 +7,23 @@ namespace Task4
 	{
 		static void Main(string[] args)
 		{
-			MyOrderedDictionary<int, string> orderedDict = new MyOrderedDictionary<int, string>();
-			orderedDict.Add(3, "Three");
-			orderedDict.Add(1, "One");
-			orderedDict.Add(2, "Two");
+			MyOrderedDictionary<string, string> dictionary = new MyOrderedDictionary<string, string>();
+			dictionary.Add("one", "A");
+			dictionary.Add("two", "a");
+			dictionary.Add("three", "B");
 
-			foreach (var kvp in orderedDict)
+			int comparisonResult = dictionary.CompareValuesByIndex(2, 0);
+			if (comparisonResult < 0)
 			{
-				Console.WriteLine($"{kvp.Key}: {kvp.Value}");
+				Console.WriteLine("Value at index 0 is less than value at index 1.");
+			}
+			else if (comparisonResult > 0)
+			{
+				Console.WriteLine("Value at index 0 is greater than value at index 1.");
+			}
+			else
+			{
+				Console.WriteLine("Value at index 0 is equal to value at index 1.");
 			}
 		}
 	}
